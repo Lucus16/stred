@@ -11,19 +11,30 @@ library
   build-depends:
     , base
     , mtl
+    , optics
+    , optics-extra
     , safe-exceptions
     , text
     , vty
 
   exposed-modules:
     Stred
+    Stred.LineEditor
+    Stred.Widget
 
   default-extensions:
     BlockArguments
+    DataKinds
     GADTs
     ImportQualifiedPost
     LambdaCase
+    OverloadedLabels
     OverloadedStrings
+    UndecidableInstances
+
+  ghc-options:
+    -Wall
+    -Wextra
 
 executable stred
   main-is:          stred.hs

@@ -5,6 +5,8 @@ let
     aeson
     containers
     megaparsec
+    optics
+    optics-extra
     ordered-containers
     safe-exceptions
     text

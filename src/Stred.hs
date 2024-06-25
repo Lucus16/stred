@@ -1,30 +1,38 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Stred where
 
-import Control.Exception.Safe (Exception, finally, throw, try)
-import Control.Monad (when)
+import Control.Monad (void, when)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.State.Strict (StateT, evalStateT, get)
+import Control.Monad.State.Strict (evalStateT, get)
 import Graphics.Vty (Vty)
 import Graphics.Vty qualified as Vty
-import Graphics.Vty.Image
+import Optics
+import Stred.LineEditor
+import Stred.Widget
 
-class Widget a where
-  -- | Returns whether event was handled. If the event goes unhandled all the
-  -- way to the toplevel, the application will terminate.
-  handleEvent :: Vty.Event -> StateT a IO Bool
+newtype App a = App {top :: a}
 
-  render :: a -> Vty.Image
+makeFieldLabelsNoPrefix ''App
 
-data App = App
-
-instance Widget App where
+instance (Widget a) => Widget (App a) where
   handleEvent (Vty.EvKey (Vty.KChar 'q') [Vty.MCtrl]) = pure False
-  handleEvent _ = pure True
+  handleEvent ev = do
+    void $ zoom #top $ handleEvent ev
+    pure True
 
-  render App = emptyImage
+  render (App w) = render w
+
+initialApp :: App LineEditor
+initialApp =
+  App $
+    LineEditor
+      { contents = ""
+      , cursorPos = 0
+      }
 
 main :: Vty -> IO ()
-main vty = evalStateT step App
+main vty = evalStateT step initialApp
   where
     step = do
       get >>= liftIO . Vty.update vty . Vty.picForImage . render
