@@ -19,12 +19,14 @@ library
 
   exposed-modules:
     Stred
+    Stred.EnumEditor
     Stred.LineEditor
     Stred.Widget
 
   default-extensions:
     BlockArguments
     DataKinds
+    DuplicateRecordFields
     GADTs
     ImportQualifiedPost
     LambdaCase

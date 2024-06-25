@@ -8,6 +8,7 @@ import Control.Monad.State.Strict (evalStateT, get)
 import Graphics.Vty (Vty)
 import Graphics.Vty qualified as Vty
 import Optics
+import Stred.EnumEditor
 import Stred.LineEditor
 import Stred.Widget
 
@@ -23,12 +24,12 @@ instance (Widget a) => Widget (App a) where
 
   render (App w) = render w
 
-initialApp :: App LineEditor
+initialApp :: App (EnumEditor Bool)
 initialApp =
   App $
-    LineEditor
-      { contents = ""
-      , cursorPos = 0
+    EnumEditor
+      { contents = minBound
+      , cursor = minBound
       }
 
 main :: Vty -> IO ()
