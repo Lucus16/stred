@@ -1,0 +1,44 @@
+cabal-version:      3.0
+name:               stred
+version:            0.1.0.0
+author:             Lars Jellema
+maintainer:         lars.jellema@gmail.com
+
+library
+  hs-source-dirs:   src
+  default-language: GHC2021
+
+  build-depends:
+    , base
+    , mtl
+    , safe-exceptions
+    , text
+    , vty
+
+  exposed-modules:
+    Stred
+
+  default-extensions:
+    BlockArguments
+    GADTs
+    ImportQualifiedPost
+    LambdaCase
+    OverloadedStrings
+
+executable stred
+  main-is:          stred.hs
+  hs-source-dirs:   .
+  default-language: GHC2021
+
+  build-depends:
+    , base
+    , safe-exceptions
+    , stred
+    , vty
+    , vty-unix
+
+  ghc-options:
+    -threaded
+
+  default-extensions:
+    ImportQualifiedPost
