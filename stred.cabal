@@ -11,8 +11,6 @@ library
   build-depends:
     , base
     , mtl
-    , optics
-    , optics-extra
     , safe-exceptions
     , text
     , vty
@@ -21,18 +19,16 @@ library
     Stred
     Stred.EnumEditor
     Stred.LineEditor
+    Stred.ListEditor
+    Stred.RecordEditor
     Stred.Widget
 
   default-extensions:
     BlockArguments
-    DataKinds
-    DuplicateRecordFields
     GADTs
     ImportQualifiedPost
     LambdaCase
-    OverloadedLabels
     OverloadedStrings
-    UndecidableInstances
 
   ghc-options:
     -Wall

@@ -1,12 +1,7 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Stred.EnumEditor where
 
-import Control.Monad (unless)
-import Control.Monad.State.Strict (get)
+import Graphics.Vty (Key (..))
 import Graphics.Vty qualified as Vty
-import Optics
-import Optics.State.Operators ((%=), (.=))
 import Stred.Widget
 
 data EnumEditor a = EnumEditor
@@ -14,32 +9,21 @@ data EnumEditor a = EnumEditor
   , cursor :: a
   }
 
-makeFieldLabelsNoPrefix ''EnumEditor
-
 instance (Bounded a, Enum a, Ord a, Show a) => Widget (EnumEditor a) where
-  handleEvent (Vty.EvKey (Vty.KChar ' ') []) = do
-    EnumEditor{cursor} <- get
-    #contents .= cursor
-    pure True
-  handleEvent (Vty.EvKey Vty.KLeft []) = do
-    EnumEditor{cursor} <- get
-    unless (cursor == minBound) do
-      #cursor %= pred
-    pure True
-  handleEvent (Vty.EvKey Vty.KRight []) = do
-    EnumEditor{cursor} <- get
-    unless (cursor == maxBound) do
-      #cursor %= succ
-    pure True
-  handleEvent (Vty.EvKey Vty.KHome []) = do
-    #cursor .= minBound
-    pure True
-  handleEvent (Vty.EvKey Vty.KEnd []) = do
-    #cursor .= maxBound
-    pure True
-  handleEvent _ = pure False
+  handleEvent (Vty.EvKey key []) original@EnumEditor{contents, cursor} = pure case key of
+    KChar ' ' -> pure original{contents = cursor}
+    KLeft
+      | cursor == minBound -> pure original
+      | otherwise -> pure original{cursor = pred cursor}
+    KRight
+      | cursor == maxBound -> pure original
+      | otherwise -> pure original{cursor = succ cursor}
+    KHome -> pure original{cursor = minBound}
+    KEnd -> pure original{cursor = maxBound}
+    _ -> Nothing
+  handleEvent _ _ = pure Nothing
 
-  render EnumEditor{contents, cursor} =
+  render active EnumEditor{contents, cursor} =
     Vty.horizCat $ map renderItem [minBound .. maxBound]
     where
       pad x = " " <> x <> " "
@@ -56,5 +40,5 @@ instance (Bounded a, Enum a, Ord a, Show a) => Widget (EnumEditor a) where
             | otherwise = id
 
           cursorAttr
-            | x == cursor = flip Vty.withStyle Vty.reverseVideo
+            | x == cursor && active = flip Vty.withStyle Vty.reverseVideo
             | otherwise = id
