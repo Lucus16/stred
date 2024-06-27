@@ -10,20 +10,19 @@ data ListEditor ed
   | Editing [ed] ed [ed]
   | Navigating [ed] ed [ed]
 
-newListEditor :: [ed] -> ListEditor ed
-newListEditor = \case
-  [] -> Empty
-  (x : xs) -> Navigating [] x xs
-
-instance (Widget ed) => Widget (ListEditor ed) where
-  handleEvent ev@(Vty.EvKey key []) (Editing before cur after) =
-    handleEvent ev cur >>= \case
+instance (Editor ed) => HandleEvent (ListEditor ed) where
+  handleKey NoMods key Empty = case key of
+    KChar 'O' -> pure $ Just $ Editing [] newEditor []
+    KChar 'o' -> pure $ Just $ Editing [] newEditor []
+    _ -> pure Nothing
+  handleKey mods key (Editing before cur after) =
+    handleKey mods key cur >>= \case
       Just cur' -> pure $ Just $ Editing before cur' after
-      Nothing -> case key of
-        KEsc -> pure $ Just $ Navigating before cur after
-        KLeft -> pure $ Just $ Navigating before cur after
+      Nothing -> case (mods, key) of
+        (NoMods, KEsc) -> pure $ Just $ Navigating before cur after
+        (NoMods, KLeft) -> pure $ Just $ Navigating before cur after
         _ -> pure Nothing
-  handleEvent (Vty.EvKey key []) original@(Navigating before cur after) = case key of
+  handleKey NoMods key original@(Navigating before cur after) = case key of
     KUp -> case before of
       [] -> pure $ Just original
       x : before' -> pure $ Just $ Navigating before' x (cur : after)
@@ -36,6 +35,9 @@ instance (Widget ed) => Widget (ListEditor ed) where
     KChar 'x' -> delete
     KDel -> delete
     KPause -> delete
+    KChar 'O' -> pure $ Just $ Editing before newEditor (cur : after)
+    KChar 'o' -> pure $ Just $ Editing (cur : before) newEditor after
+    KChar 'r' -> pure $ Just $ Editing before newEditor after
     _ -> pure Nothing
     where
       delete =
@@ -45,8 +47,9 @@ instance (Widget ed) => Widget (ListEditor ed) where
               [] -> pure $ Just Empty
               cur' : before' -> pure $ Just $ Navigating before' cur' []
           cur' : after' -> pure $ Just $ Navigating before cur' after'
-  handleEvent _ _ = pure Nothing
+  handleKey _ _ _ = pure Nothing
 
+instance (Render ed) => Render (ListEditor ed) where
   render active = \case
     Empty -> Vty.text' activeAttr "(empty list)"
     Navigating before cur after ->
@@ -63,3 +66,15 @@ instance (Widget ed) => Widget (ListEditor ed) where
         | active = Vty.withStyle Vty.defAttr Vty.reverseVideo
         | otherwise = Vty.defAttr
       bullet = Vty.text' Vty.defAttr "• "
+
+instance (Editor ed) => Editor (ListEditor ed) where
+  type Contents (ListEditor ed) = [Contents ed]
+  newEditor = Empty
+  editorFromContents xs = case map editorFromContents xs of
+    [] -> Empty
+    (ed : eds) -> Navigating [] ed eds
+  contentsFromEditor Empty = Just []
+  contentsFromEditor (Editing before cur after) =
+    traverse contentsFromEditor $ reverse before <> [cur] <> after
+  contentsFromEditor (Navigating before cur after) =
+    traverse contentsFromEditor $ reverse before <> [cur] <> after

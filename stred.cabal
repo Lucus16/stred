@@ -20,15 +20,17 @@ library
     Stred.EnumEditor
     Stred.LineEditor
     Stred.ListEditor
-    Stred.RecordEditor
     Stred.Widget
 
   default-extensions:
     BlockArguments
+    DerivingStrategies
     GADTs
     ImportQualifiedPost
     LambdaCase
     OverloadedStrings
+    PatternSynonyms
+    TypeFamilies
 
   ghc-options:
     -Wall

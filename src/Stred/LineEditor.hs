@@ -12,15 +12,8 @@ data LineEditor = LineEditor
   , cursorPos :: Int
   }
 
-newLineEditor :: LineEditor
-newLineEditor =
-  LineEditor
-    { contents = ""
-    , cursorPos = 0
-    }
-
-instance Widget LineEditor where
-  handleEvent (Vty.EvKey key []) original@LineEditor{contents, cursorPos} = pure case key of
+instance HandleEvent LineEditor where
+  handleKey NoMods key original@LineEditor{contents, cursorPos} = pure case key of
     KChar c -> pure original{contents = Text.take cursorPos contents <> Text.singleton c <> Text.drop cursorPos contents, cursorPos = cursorPos + 1}
     KPause
       | cursorPos == Text.length contents -> pure original
@@ -40,8 +33,9 @@ instance Widget LineEditor where
     KHome -> pure original{cursorPos = 0}
     KEnd -> pure original{cursorPos = Text.length contents}
     _ -> Nothing
-  handleEvent _ _ = pure Nothing
+  handleKey _ _ _ = pure Nothing
 
+instance Render LineEditor where
   render active LineEditor{contents, cursorPos}
     | cursorPos < Text.length contents =
         Vty.text' Vty.defAttr (Text.take cursorPos contents)
@@ -54,3 +48,9 @@ instance Widget LineEditor where
       cursorAttr
         | active = Vty.withStyle Vty.defAttr Vty.reverseVideo
         | otherwise = Vty.defAttr
+
+instance Editor LineEditor where
+  type Contents LineEditor = Text
+  newEditor = LineEditor{contents = "", cursorPos = 0}
+  editorFromContents contents = LineEditor{contents, cursorPos = 0}
+  contentsFromEditor LineEditor{contents} = Just contents

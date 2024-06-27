@@ -9,8 +9,8 @@ data EnumEditor a = EnumEditor
   , cursor :: a
   }
 
-instance (Bounded a, Enum a, Ord a, Show a) => Widget (EnumEditor a) where
-  handleEvent (Vty.EvKey key []) original@EnumEditor{contents, cursor} = pure case key of
+instance (Bounded a, Enum a, Eq a) => HandleEvent (EnumEditor a) where
+  handleKey NoMods key original@EnumEditor{cursor} = pure case key of
     KChar ' ' -> pure original{contents = cursor}
     KLeft
       | cursor == minBound -> pure original
@@ -21,8 +21,9 @@ instance (Bounded a, Enum a, Ord a, Show a) => Widget (EnumEditor a) where
     KHome -> pure original{cursor = minBound}
     KEnd -> pure original{cursor = maxBound}
     _ -> Nothing
-  handleEvent _ _ = pure Nothing
+  handleKey _ _ _ = pure Nothing
 
+instance (Bounded a, Enum a, Eq a, Show a) => Render (EnumEditor a) where
   render active EnumEditor{contents, cursor} =
     Vty.horizCat $ map renderItem [minBound .. maxBound]
     where
@@ -42,3 +43,9 @@ instance (Bounded a, Enum a, Ord a, Show a) => Widget (EnumEditor a) where
           cursorAttr
             | x == cursor && active = flip Vty.withStyle Vty.reverseVideo
             | otherwise = id
+
+instance (Bounded a, Enum a, Eq a, Show a) => Editor (EnumEditor a) where
+  type Contents (EnumEditor a) = a
+  newEditor = EnumEditor{contents = minBound, cursor = minBound}
+  editorFromContents x = EnumEditor{contents = x, cursor = x}
+  contentsFromEditor EnumEditor{contents} = Just contents
