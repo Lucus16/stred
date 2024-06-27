@@ -37,3 +37,16 @@ class (HandleEvent a, Render a) => Editor a where
   newEditor :: a
   editorFromContents :: Contents a -> a
   contentsFromEditor :: a -> Maybe (Contents a)
+
+data SomeEditor a where
+  SomeEditor :: (Editor ed, Contents ed ~ a) => ed -> SomeEditor a
+
+instance HandleEvent (SomeEditor a) where
+  handleKey mods key (SomeEditor ed) = fmap SomeEditor <$> handleKey mods key ed
+
+instance Render (SomeEditor a) where
+  render active (SomeEditor ed) = render active ed
+
+class Editable a where
+  type DefaultEditor a
+  defaultEditor :: (Editor (DefaultEditor a), Contents (DefaultEditor a) ~ a) => a -> DefaultEditor a

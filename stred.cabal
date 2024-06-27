@@ -20,6 +20,7 @@ library
     Stred.EnumEditor
     Stred.LineEditor
     Stred.ListEditor
+    Stred.TabbedEditor
     Stred.Widget
 
   default-extensions:
