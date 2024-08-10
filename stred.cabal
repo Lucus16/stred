@@ -9,16 +9,20 @@ library
   default-language: GHC2021
 
   build-depends:
+    , aeson
     , base
+    , containers
     , data-fix
     , mtl
     , safe-exceptions
     , text
+    , vector
     , vty
 
   exposed-modules:
     Stred
     Stred.EnumEditor
+    Stred.JsonEditor
     Stred.LineEditor
     Stred.ListEditor
     Stred.TabbedEditor

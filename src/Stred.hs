@@ -5,8 +5,7 @@ import Data.Foldable (traverse_)
 import Data.Maybe (fromMaybe)
 import Graphics.Vty (Key (..), Vty)
 import Graphics.Vty qualified as Vty
-import Stred.LineEditor
-import Stred.ListEditor
+import Stred.JsonEditor
 import Stred.Widget
 
 newtype App a = App {top :: a}
@@ -16,7 +15,7 @@ instance (HandleEvent a) => HandleEvent (App a) where
   handleKey Ctrl (KChar 'q') _ = pure Nothing
   handleKey mods key (App a) = Just . App . fromMaybe a <$> handleKey mods key a
 
-initialApp :: App (ListEditor LineEditor)
+initialApp :: App JsonEditor
 initialApp = newEditor
 
 main :: Vty -> IO ()
