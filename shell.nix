@@ -4,6 +4,7 @@ let
   ghc = haskellPackages.ghcWithHoogle (p: with p; [
     aeson
     containers
+    data-fix
     megaparsec
     optics
     optics-extra

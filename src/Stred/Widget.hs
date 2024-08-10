@@ -1,5 +1,6 @@
 module Stred.Widget where
 
+import Data.Fix (Fix (..))
 import Graphics.Vty qualified as Vty
 import Graphics.Vty.Input.Events (Key, Modifier)
 
@@ -50,3 +51,9 @@ instance Render (SomeEditor a) where
 class Editable a where
   type DefaultEditor a
   defaultEditor :: (Editor (DefaultEditor a), Contents (DefaultEditor a) ~ a) => a -> DefaultEditor a
+
+class HandleEvent1 f where
+  handleKey1 :: (Mods -> Key -> a -> IO (Maybe a)) -> Mods -> Key -> f a -> IO (Maybe (f a))
+
+instance (HandleEvent1 f) => HandleEvent (Fix f) where
+  handleKey mods key = fmap (fmap Fix) . handleKey1 handleKey mods key . unFix

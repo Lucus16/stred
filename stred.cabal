@@ -10,6 +10,7 @@ library
 
   build-depends:
     , base
+    , data-fix
     , mtl
     , safe-exceptions
     , text
