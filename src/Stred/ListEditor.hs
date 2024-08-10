@@ -29,6 +29,7 @@ instance (Editor ed) => HandleEvent (ListEditor ed) where
     KDown -> case after of
       [] -> pure $ Just original
       x : after' -> pure $ Just $ Navigating (cur : before) x after'
+    KChar 'd' -> pure $ Just $ Navigating before cur (cur : after)
     KEnter -> pure $ Just $ Editing before cur after
     KRight -> pure $ Just $ Editing before cur after
     KBS -> delete
@@ -54,7 +55,7 @@ instance (Render ed) => Render (ListEditor ed) where
     Empty -> Vty.text' activeAttr "(empty list)"
     Navigating before cur after ->
       Vty.vertCat (map renderInactive (reverse before))
-        <-> (bullet <|> render False cur)
+        <-> (currentBullet <|> render False cur)
         <-> Vty.vertCat (map renderInactive after)
     Editing before cur after ->
       Vty.vertCat (map renderInactive (reverse before))
@@ -66,6 +67,9 @@ instance (Render ed) => Render (ListEditor ed) where
         | active = Vty.withStyle Vty.defAttr Vty.reverseVideo
         | otherwise = Vty.defAttr
       bullet = Vty.text' Vty.defAttr "• "
+      currentBullet
+        | active = Vty.text' Vty.defAttr "➤ "
+        | otherwise = bullet
 
 instance (Editor ed) => Editor (ListEditor ed) where
   type Contents (ListEditor ed) = [Contents ed]
