@@ -71,6 +71,15 @@ instance (Render ed) => Render (ListEditor ed) where
         | active = Vty.text' Vty.defAttr "➤ "
         | otherwise = bullet
 
+  renderCollapsed = \case
+    Empty -> Vty.text' Vty.defAttr "(empty list)"
+    Navigating before _ after ->
+      Vty.string Vty.defAttr $
+        "(list of " <> show (length before + 1 + length after) <> " items)"
+    Editing before _ after ->
+      Vty.string Vty.defAttr $
+        "(list of " <> show (length before + 1 + length after) <> " items)"
+
 instance (Editor ed) => Editor (ListEditor ed) where
   type Contents (ListEditor ed) = [Contents ed]
   newEditor = Empty

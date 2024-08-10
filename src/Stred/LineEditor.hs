@@ -49,6 +49,10 @@ instance Render LineEditor where
         | active = Vty.withStyle Vty.defAttr Vty.reverseVideo
         | otherwise = Vty.defAttr
 
+  renderCollapsed LineEditor{contents}
+    | Text.length contents < 40 = Vty.text' Vty.defAttr contents
+    | otherwise = Vty.text' Vty.defAttr (Text.take 36 contents <> " ...")
+
 instance Editor LineEditor where
   type Contents LineEditor = Text
   newEditor = LineEditor{contents = "", cursorPos = 0}

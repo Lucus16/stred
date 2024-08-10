@@ -32,6 +32,7 @@ class HandleEvent a where
 
 class Render a where
   render :: Bool -> a -> Vty.Image
+  renderCollapsed :: a -> Vty.Image
 
 class (HandleEvent a, Render a) => Editor a where
   type Contents a
@@ -47,6 +48,7 @@ instance HandleEvent (SomeEditor a) where
 
 instance Render (SomeEditor a) where
   render active (SomeEditor ed) = render active ed
+  renderCollapsed (SomeEditor ed) = renderCollapsed ed
 
 class Editable a where
   type DefaultEditor a

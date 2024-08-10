@@ -50,3 +50,8 @@ instance Render (TabbedEditor a) where
         map (Vty.text' Vty.defAttr . name) (reverse before)
           <> [Vty.text' (Vty.withStyle Vty.defAttr Vty.reverseVideo) (name cur)]
           <> map (Vty.text' Vty.defAttr . name) after
+
+  renderCollapsed (Navigating _ cur _) =
+    Vty.text' Vty.defAttr (name cur <> " ...")
+  renderCollapsed (Editing _ cur _) =
+    Vty.text' Vty.defAttr (name cur <> " ...")

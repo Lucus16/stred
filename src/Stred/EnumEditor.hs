@@ -44,6 +44,8 @@ instance (Bounded a, Enum a, Eq a, Show a) => Render (EnumEditor a) where
             | x == cursor && active = flip Vty.withStyle Vty.reverseVideo
             | otherwise = id
 
+  renderCollapsed EnumEditor{contents} = Vty.string Vty.defAttr (show contents <> " ...")
+
 instance (Bounded a, Enum a, Eq a, Show a) => Editor (EnumEditor a) where
   type Contents (EnumEditor a) = a
   newEditor = EnumEditor{contents = minBound, cursor = minBound}
