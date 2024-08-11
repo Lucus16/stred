@@ -30,6 +30,18 @@ instance (Editor ed) => HandleEvent (ListEditor ed) where
       [] -> pure $ Just original
       x : after' -> pure $ Just $ Navigating (cur : before) x after'
     KChar 'd' -> pure $ Just $ Navigating before cur (cur : after)
+    KChar 'g' -> case reverse before of
+      [] -> pure $ Just original
+      x : xs -> pure $ Just $ Navigating [] x (xs ++ cur : after)
+    KChar 'G' -> case reverse after of
+      [] -> pure $ Just original
+      x : xs -> pure $ Just $ Navigating (xs ++ cur : before) x []
+    KHome -> case reverse before of
+      [] -> pure $ Just original
+      x : xs -> pure $ Just $ Navigating [] x (xs ++ cur : after)
+    KEnd -> case reverse after of
+      [] -> pure $ Just original
+      x : xs -> pure $ Just $ Navigating (xs ++ cur : before) x []
     KEnter -> pure $ Just $ Editing before cur after
     KRight -> pure $ Just $ Editing before cur after
     KBS -> delete
