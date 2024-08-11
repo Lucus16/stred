@@ -15,6 +15,7 @@ library
     , data-fix
     , mtl
     , safe-exceptions
+    , scientific
     , text
     , vector
     , vty
@@ -25,6 +26,7 @@ library
     Stred.JsonEditor
     Stred.LineEditor
     Stred.ListEditor
+    Stred.ReadShowEditor
     Stred.SelectByKey
     Stred.TabbedEditor
     Stred.Widget
