@@ -25,6 +25,7 @@ library
     Stred.JsonEditor
     Stred.LineEditor
     Stred.ListEditor
+    Stred.SelectByKey
     Stred.TabbedEditor
     Stred.Widget
 
