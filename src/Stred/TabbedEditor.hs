@@ -1,10 +1,13 @@
-module Stred.TabbedEditor where
+module Stred.TabbedEditor
+  ( Tab (..)
+  , TabbedEditor (..)
+  ) where
 
-import Data.List (intersperse)
+import Data.List.NonEmpty (NonEmpty (..))
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.Text (Text)
 import Graphics.Vty (Key (..))
-import Graphics.Vty qualified as Vty
-import Graphics.Vty.Image ((<->))
+import Stred.Image
 import Stred.Widget
 
 data Tab a = Tab
@@ -35,23 +38,29 @@ instance (Bounded a, Enum a, Eq a) => HandleEvent (TabbedEditor a) where
 
 instance Render (TabbedEditor a) where
   render active (Navigating before cur after) =
-    Vty.horizCat (intersperse space tabs) <-> render active (contents cur)
+    vcat
+      [ hcat (NonEmpty.intersperse " " tabs)
+      , render False (contents cur)
+      ]
     where
-      space = Vty.text' Vty.defAttr " "
       tabs =
-        map (Vty.text' Vty.defAttr . name) (reverse before)
-          <> [Vty.text' (Vty.withStyle Vty.defAttr Vty.reverseVideo) (name cur)]
-          <> map (Vty.text' Vty.defAttr . name) after
+        NonEmpty.prependList (map (raw . name) (reverse before)) $
+          style tabStyle (raw (name cur)) :| map (raw . name) after
+      tabStyle
+        | active = defaultStyle{bgColor = Just 15, fgColor = Just 0}
+        | otherwise = defaultStyle{bold = Just True}
   render active (Editing before cur after) =
-    Vty.horizCat (intersperse space tabs) <-> render active (contents cur)
+    vcat
+      [ hcat (NonEmpty.intersperse " " tabs)
+      , render active (contents cur)
+      ]
     where
-      space = Vty.text' Vty.defAttr " "
       tabs =
-        map (Vty.text' Vty.defAttr . name) (reverse before)
-          <> [Vty.text' (Vty.withStyle Vty.defAttr Vty.reverseVideo) (name cur)]
-          <> map (Vty.text' Vty.defAttr . name) after
+        NonEmpty.prependList (map (raw . name) (reverse before)) $
+          style defaultStyle{bgColor = Just 15, fgColor = Just 0} (raw (name cur))
+            :| map (raw . name) after
 
   renderCollapsed (Navigating _ cur _) =
-    Vty.text' Vty.defAttr (name cur <> " ...")
+    raw (name cur <> " ...")
   renderCollapsed (Editing _ cur _) =
-    Vty.text' Vty.defAttr (name cur <> " ...")
+    raw (name cur <> " ...")

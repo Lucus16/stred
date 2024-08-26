@@ -1,12 +1,13 @@
 module Stred.SelectByKey where
 
-import Data.List (intersperse)
+import Data.List.NonEmpty (nonEmpty)
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Graphics.Vty qualified as Vty
-import Graphics.Vty.Image ((<|>))
+import Stred.Image
 import Stred.Widget
 
 data SelectByKey ed
@@ -22,20 +23,20 @@ instance (HandleEvent ed) => HandleEvent (SelectByKey ed) where
 instance (Render ed) => Render (SelectByKey ed) where
   render active (Selected s) = render active s
   render active (SelectByKey s) =
-    Vty.horizCat $
-      intersperse (Vty.text Vty.defAttr " ") $
-        renderOne <$> Map.assocs s
+    case nonEmpty (Map.assocs s) of
+      Nothing -> "(no options available)"
+      Just assocs -> hcat $ NonEmpty.intersperse " " $ renderOne <$> assocs
     where
       renderOne (key, (name, _))
         | key `Text.elem` name =
-            Vty.text' Vty.defAttr (Text.takeWhile (/= key) name)
-              <|> Vty.text' attr (Text.singleton key)
-              <|> Vty.text' Vty.defAttr (Text.tail (Text.dropWhile (/= key) name))
-        | otherwise =
-            Vty.text' attr (Text.singleton key)
-              <|> Vty.text' Vty.defAttr (":" <> name)
-      attr
-        | active = Vty.withStyle Vty.defAttr Vty.underline
-        | otherwise = Vty.defAttr
+            hcat
+              [ raw (Text.takeWhile (/= key) name)
+              , style shortkeyStyle (raw (Text.singleton key))
+              , raw (Text.tail (Text.dropWhile (/= key) name))
+              ]
+        | otherwise = hcat [style shortkeyStyle (raw (Text.singleton key)), ":", raw name]
+      shortkeyStyle
+        | active = defaultStyle{ulColor = Just 15}
+        | otherwise = defaultStyle
 
-  renderCollapsed _ = Vty.text Vty.defAttr "undefined"
+  renderCollapsed _ = "(choice)"

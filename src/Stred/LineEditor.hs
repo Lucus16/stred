@@ -3,8 +3,7 @@ module Stred.LineEditor where
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Graphics.Vty (Key (..))
-import Graphics.Vty qualified as Vty
-import Graphics.Vty.Image ((<|>))
+import Stred.Image
 import Stred.Widget
 
 data LineEditor = LineEditor
@@ -38,20 +37,21 @@ instance HandleEvent LineEditor where
 instance Render LineEditor where
   render active LineEditor{contents, cursorPos}
     | cursorPos < Text.length contents =
-        Vty.text' Vty.defAttr (Text.take cursorPos contents)
-          <|> Vty.text' cursorAttr (Text.take 1 (Text.drop cursorPos contents))
-          <|> Vty.text' Vty.defAttr (Text.drop (cursorPos + 1) contents)
+        hcat
+          [ raw (Text.take cursorPos contents)
+          , style cursorStyle (raw (Text.take 1 (Text.drop cursorPos contents)))
+          , raw (Text.drop (cursorPos + 1) contents)
+          ]
     | otherwise =
-        Vty.text' Vty.defAttr (Text.take cursorPos contents)
-          <|> Vty.text' cursorAttr " "
+        hcat [raw (Text.take cursorPos contents), style cursorStyle " "]
     where
-      cursorAttr
-        | active = Vty.withStyle Vty.defAttr Vty.reverseVideo
-        | otherwise = Vty.defAttr
+      cursorStyle
+        | active = defaultStyle{bgColor = Just 15, fgColor = Just 0}
+        | otherwise = defaultStyle
 
   renderCollapsed LineEditor{contents}
-    | Text.length contents < 40 = Vty.text' Vty.defAttr contents
-    | otherwise = Vty.text' Vty.defAttr (Text.take 36 contents <> " ...")
+    | Text.length contents < 40 = raw contents
+    | otherwise = raw (Text.take 36 contents <> " ...")
 
 instance Editor LineEditor where
   type Contents LineEditor = Text

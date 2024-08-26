@@ -39,6 +39,7 @@ library
     GADTs
     ImportQualifiedPost
     LambdaCase
+    OverloadedLists
     OverloadedStrings
     PatternSynonyms
     TypeFamilies

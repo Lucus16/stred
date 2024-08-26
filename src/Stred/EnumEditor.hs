@@ -1,7 +1,9 @@
 module Stred.EnumEditor where
 
+import Data.List.NonEmpty qualified as NonEmpty
+import Data.Text qualified as Text
 import Graphics.Vty (Key (..))
-import Graphics.Vty qualified as Vty
+import Stred.Image
 import Stred.Widget
 
 data EnumEditor a = EnumEditor
@@ -25,26 +27,26 @@ instance (Bounded a, Enum a, Eq a) => HandleEvent (EnumEditor a) where
 
 instance (Bounded a, Enum a, Eq a, Show a) => Render (EnumEditor a) where
   render active EnumEditor{contents, cursor} =
-    Vty.horizCat $ map renderItem [minBound .. maxBound]
+    hcat $ fmap renderItem (NonEmpty.fromList [minBound .. maxBound])
     where
-      pad x = " " <> x <> " "
-
-      renderItem :: a -> Vty.Image
-      renderItem x = Vty.string (contentsAttr (cursorAttr Vty.defAttr)) (pad (bullet <> show x))
+      renderItem :: a -> Sized Image
+      renderItem x =
+        style (contentsAttr (cursorAttr defaultStyle)) $
+          hcat [" ", bullet, ishow x, " "]
         where
           bullet
             | x == contents = "◉ "
             | otherwise = "○ "
 
           contentsAttr
-            | x == contents = flip Vty.withStyle Vty.bold
+            | x == contents = \s -> s{bold = Just True}
             | otherwise = id
 
           cursorAttr
-            | x == cursor && active = flip Vty.withStyle Vty.reverseVideo
+            | x == cursor && active = \s -> s{bgColor = Just 8}
             | otherwise = id
 
-  renderCollapsed EnumEditor{contents} = Vty.string Vty.defAttr (show contents <> " ...")
+  renderCollapsed EnumEditor{contents} = raw (Text.pack (show contents) <> " ...")
 
 instance (Bounded a, Enum a, Eq a, Show a) => Editor (EnumEditor a) where
   type Contents (EnumEditor a) = a

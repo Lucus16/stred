@@ -1,8 +1,8 @@
 module Stred.Widget where
 
 import Data.Fix (Fix (..))
-import Graphics.Vty qualified as Vty
-import Graphics.Vty.Input.Events (Key, Modifier)
+import Graphics.Vty.Input.Events (Key, Modifier (..))
+import Stred.Image
 
 data Mods = Mods {ctrl :: Bool, alt :: Bool, shift :: Bool}
 
@@ -20,10 +20,10 @@ toMods :: [Modifier] -> Mods
 toMods = go NoMods
   where
     go mods [] = mods
-    go mods (Vty.MCtrl : more) = go mods{ctrl = True} more
-    go mods (Vty.MMeta : more) = go mods{alt = True} more
-    go mods (Vty.MAlt : more) = go mods{alt = True} more
-    go mods (Vty.MShift : more) = go mods{shift = True} more
+    go mods (MCtrl : more) = go mods{ctrl = True} more
+    go mods (MMeta : more) = go mods{alt = True} more
+    go mods (MAlt : more) = go mods{alt = True} more
+    go mods (MShift : more) = go mods{shift = True} more
 
 class HandleEvent a where
   -- | Nothing means the event was not handled. If the toplevel app does not
@@ -31,8 +31,8 @@ class HandleEvent a where
   handleKey :: Mods -> Key -> a -> IO (Maybe a)
 
 class Render a where
-  render :: Bool -> a -> Vty.Image
-  renderCollapsed :: a -> Vty.Image
+  render :: Bool -> a -> Sized Image
+  renderCollapsed :: a -> Sized Image
 
 class (HandleEvent a, Render a) => Editor a where
   type Contents a

@@ -1,8 +1,9 @@
 module Stred.ListEditor where
 
+import Data.List.NonEmpty (NonEmpty (..))
+import Data.List.NonEmpty qualified as NonEmpty
 import Graphics.Vty (Key (..))
-import Graphics.Vty qualified as Vty
-import Graphics.Vty.Image ((<->), (<|>))
+import Stred.Image
 import Stred.Widget
 
 data ListEditor ed
@@ -64,33 +65,31 @@ instance (Editor ed) => HandleEvent (ListEditor ed) where
 
 instance (Render ed) => Render (ListEditor ed) where
   render active = \case
-    Empty -> Vty.text' activeAttr "(empty list)"
+    Empty -> style activeStyle "(empty list)"
     Navigating before cur after ->
-      Vty.vertCat (map renderInactive (reverse before))
-        <-> (currentBullet <|> render False cur)
-        <-> Vty.vertCat (map renderInactive after)
+      vcat $
+        NonEmpty.prependList (fmap renderInactive (reverse before)) $
+          hcat [currentBullet, render False cur] :| fmap renderInactive after
     Editing before cur after ->
-      Vty.vertCat (map renderInactive (reverse before))
-        <-> (bullet <|> render active cur)
-        <-> Vty.vertCat (map renderInactive after)
+      vcat $
+        NonEmpty.prependList (fmap renderInactive (reverse before)) $
+          hcat [bullet, render active cur] :| fmap renderInactive after
     where
-      renderInactive editor = bullet <|> render False editor
-      activeAttr
-        | active = Vty.withStyle Vty.defAttr Vty.reverseVideo
-        | otherwise = Vty.defAttr
-      bullet = Vty.text' Vty.defAttr "• "
+      renderInactive editor = hcat [bullet, render False editor]
+      activeStyle
+        | active = defaultStyle{bgColor = Just 15, fgColor = Just 0}
+        | otherwise = defaultStyle
+      bullet = "• "
       currentBullet
-        | active = Vty.text' Vty.defAttr "➤ "
+        | active = "➤ "
         | otherwise = bullet
 
   renderCollapsed = \case
-    Empty -> Vty.text' Vty.defAttr "(empty list)"
+    Empty -> raw "(empty list)"
     Navigating before _ after ->
-      Vty.string Vty.defAttr $
-        "(list of " <> show (length before + 1 + length after) <> " items)"
+      hcat ["(list of ", ishow (length before + 1 + length after), " items)"]
     Editing before _ after ->
-      Vty.string Vty.defAttr $
-        "(list of " <> show (length before + 1 + length after) <> " items)"
+      hcat ["(list of ", ishow (length before + 1 + length after), " items)"]
 
 instance (Editor ed) => Editor (ListEditor ed) where
   type Contents (ListEditor ed) = [Contents ed]
