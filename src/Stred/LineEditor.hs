@@ -39,15 +39,15 @@ instance Render LineEditor where
     | cursorPos < Text.length contents =
         hcat
           [ raw (Text.take cursorPos contents)
-          , style cursorStyle (raw (Text.take 1 (Text.drop cursorPos contents)))
+          , cursorStyle (raw (Text.take 1 (Text.drop cursorPos contents)))
           , raw (Text.drop (cursorPos + 1) contents)
           ]
     | otherwise =
-        hcat [raw (Text.take cursorPos contents), style cursorStyle " "]
+        hcat [raw (Text.take cursorPos contents), cursorStyle " "]
     where
       cursorStyle
-        | active = defaultStyle{bgColor = Just 15, fgColor = Just 0}
-        | otherwise = defaultStyle
+        | active = bg 15 . fg 0
+        | otherwise = id
 
   renderCollapsed LineEditor{contents}
     | Text.length contents < 40 = raw contents

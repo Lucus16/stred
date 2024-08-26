@@ -30,20 +30,18 @@ instance (Bounded a, Enum a, Eq a, Show a) => Render (EnumEditor a) where
     hcat $ fmap renderItem (NonEmpty.fromList [minBound .. maxBound])
     where
       renderItem :: a -> Sized Image
-      renderItem x =
-        style (contentsAttr (cursorAttr defaultStyle)) $
-          hcat [" ", bullet, ishow x, " "]
+      renderItem x = contentsAttr $ cursorAttr $ hcat [" ", bullet, ishow x, " "]
         where
           bullet
             | x == contents = "◉ "
             | otherwise = "○ "
 
           contentsAttr
-            | x == contents = \s -> s{bold = Just True}
+            | x == contents = bold
             | otherwise = id
 
           cursorAttr
-            | x == cursor && active = \s -> s{bgColor = Just 8}
+            | x == cursor && active = bg 8
             | otherwise = id
 
   renderCollapsed EnumEditor{contents} = raw (Text.pack (show contents) <> " ...")

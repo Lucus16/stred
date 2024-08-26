@@ -1,5 +1,6 @@
 module Stred.ListEditor where
 
+import Data.Function (applyWhen)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
 import Graphics.Vty (Key (..))
@@ -65,11 +66,11 @@ instance (Editor ed) => HandleEvent (ListEditor ed) where
 
 instance (Render ed) => Render (ListEditor ed) where
   render active = \case
-    Empty -> style activeStyle "(empty list)"
+    Empty -> activeStyle "(empty list)"
     Navigating before cur after ->
       vcat $
         NonEmpty.prependList (fmap renderInactive (reverse before)) $
-          hcat [currentBullet, render False cur] :| fmap renderInactive after
+          hcat [currentBullet, applyWhen active (bg 8) $ render False cur] :| fmap renderInactive after
     Editing before cur after ->
       vcat $
         NonEmpty.prependList (fmap renderInactive (reverse before)) $
@@ -77,8 +78,8 @@ instance (Render ed) => Render (ListEditor ed) where
     where
       renderInactive editor = hcat [bullet, render False editor]
       activeStyle
-        | active = defaultStyle{bgColor = Just 15, fgColor = Just 0}
-        | otherwise = defaultStyle
+        | active = bg 15 . fg 0
+        | otherwise = id
       bullet = "• "
       currentBullet
         | active = "➤ "

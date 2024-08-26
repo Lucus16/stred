@@ -45,10 +45,10 @@ instance Render (TabbedEditor a) where
     where
       tabs =
         NonEmpty.prependList (map (raw . name) (reverse before)) $
-          style tabStyle (raw (name cur)) :| map (raw . name) after
+          tabStyle (raw (name cur)) :| map (raw . name) after
       tabStyle
-        | active = defaultStyle{bgColor = Just 15, fgColor = Just 0}
-        | otherwise = defaultStyle{bold = Just True}
+        | active = bg 15 . fg 0
+        | otherwise = bold
   render active (Editing before cur after) =
     vcat
       [ hcat (NonEmpty.intersperse " " tabs)
@@ -57,10 +57,13 @@ instance Render (TabbedEditor a) where
     where
       tabs =
         NonEmpty.prependList (map (raw . name) (reverse before)) $
-          style defaultStyle{bgColor = Just 15, fgColor = Just 0} (raw (name cur))
+          selectedTabStyle (raw (name cur))
             :| map (raw . name) after
 
   renderCollapsed (Navigating _ cur _) =
     raw (name cur <> " ...")
   renderCollapsed (Editing _ cur _) =
     raw (name cur <> " ...")
+
+selectedTabStyle :: Sized Image -> Sized Image
+selectedTabStyle = bg 7 . fg 0

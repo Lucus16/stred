@@ -31,12 +31,12 @@ instance (Render ed) => Render (SelectByKey ed) where
         | key `Text.elem` name =
             hcat
               [ raw (Text.takeWhile (/= key) name)
-              , style shortkeyStyle (raw (Text.singleton key))
+              , shortkeyStyle (raw (Text.singleton key))
               , raw (Text.tail (Text.dropWhile (/= key) name))
               ]
-        | otherwise = hcat [style shortkeyStyle (raw (Text.singleton key)), ":", raw name]
+        | otherwise = hcat [shortkeyStyle (raw (Text.singleton key)), ":", raw name]
       shortkeyStyle
-        | active = defaultStyle{ulColor = Just 15}
-        | otherwise = defaultStyle
+        | active = underline 15
+        | otherwise = id
 
   renderCollapsed _ = "(choice)"

@@ -1,15 +1,16 @@
 module Stred.Image
   ( Sized (..)
-  , Style (..)
-  , defaultStyle
   , Image
   , raw
   , ishow
   , crop
-  , style
   , hcat
   , vcat
   , renderImage
+  , bold
+  , fg
+  , bg
+  , underline
   ) where
 
 import Control.Applicative ((<|>))
@@ -23,6 +24,8 @@ import Data.Text qualified as Text
 import Data.Text.Encoding (encodeUtf8)
 import Data.Word (Word8)
 import Graphics.Vty qualified as Vty
+
+type Color = Word8
 
 data Image
   = Raw Text
@@ -40,17 +43,20 @@ crop :: Int -> Int -> Sized Image -> Sized Image
 crop w h (Sized _ _ img) = Sized w h img
 
 style :: Style -> Sized Image -> Sized Image
+style s (Sized w h (Styled s' image)) = Sized w h (Styled (s `over` s') image)
 style s image = Sized w h (Styled s image)
   where
     Sized w h _ = image
 
 hcat :: NonEmpty (Sized Image) -> Sized Image
+hcat (img :| []) = img
 hcat imgs = Sized (sum widths) (maximum heights) (HCat imgs)
   where
     widths = width <$> imgs
     heights = height <$> imgs
 
 vcat :: NonEmpty (Sized Image) -> Sized Image
+vcat (img :| []) = img
 vcat imgs = Sized (maximum widths) (sum heights) (VCat imgs)
   where
     widths = width <$> imgs
@@ -134,18 +140,30 @@ styleLine s text targetWidth =
           Nothing -> ""
           Just (t', _) -> cropLine t'
 
+bold :: Sized Image -> Sized Image
+bold = style defaultStyle{sBold = Just True}
+
+fg :: Color -> Sized Image -> Sized Image
+fg c = style defaultStyle{fgColor = Just c}
+
+bg :: Color -> Sized Image -> Sized Image
+bg c = style defaultStyle{bgColor = Just c}
+
+underline :: Color -> Sized Image -> Sized Image
+underline c = style defaultStyle{ulColor = Just c}
+
 data Style = Style
-  { bold :: Maybe Bool
-  , bgColor :: Maybe Word8
-  , fgColor :: Maybe Word8
-  , ulColor :: Maybe Word8
+  { sBold :: Maybe Bool
+  , bgColor :: Maybe Color
+  , fgColor :: Maybe Color
+  , ulColor :: Maybe Color
   }
   deriving (Eq)
 
 defaultStyle :: Style
 defaultStyle =
   Style
-    { bold = Nothing
+    { sBold = Nothing
     , bgColor = Nothing
     , fgColor = Nothing
     , ulColor = Nothing
@@ -154,7 +172,7 @@ defaultStyle =
 over :: Style -> Style -> Style
 over x y =
   Style
-    { bold = bold x <|> bold y
+    { sBold = sBold x <|> sBold y
     , bgColor = bgColor x <|> bgColor y
     , fgColor = fgColor x <|> fgColor y
     , ulColor = ulColor x <|> ulColor y
@@ -165,7 +183,7 @@ styleTransition before after
   | before /= defaultStyle && after == defaultStyle = sgr []
   | otherwise =
       mconcat
-        [ handleField bold \case
+        [ handleField sBold \case
             Just True -> sgr [1]
             _ -> sgr [22]
         , handleField fgColor \case
