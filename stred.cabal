@@ -11,6 +11,7 @@ library
   build-depends:
     , aeson
     , base
+    , bytestring
     , containers
     , data-fix
     , mtl
@@ -23,6 +24,7 @@ library
   exposed-modules:
     Stred
     Stred.EnumEditor
+    Stred.Image
     Stred.JsonEditor
     Stred.LineEditor
     Stred.ListEditor
