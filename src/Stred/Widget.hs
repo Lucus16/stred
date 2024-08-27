@@ -30,6 +30,9 @@ class HandleEvent a where
   -- handle an event, the system terminates.
   handleKey :: Mods -> Key -> a -> IO (Maybe a)
 
+  handleUnfocus :: a -> IO a
+  handleUnfocus = pure
+
 class Render a where
   render :: Bool -> a -> Sized Image
   renderCollapsed :: a -> Sized Image

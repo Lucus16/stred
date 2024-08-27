@@ -21,8 +21,12 @@ instance (Editor ed) => HandleEvent (ListEditor ed) where
     handleKey mods key cur >>= \case
       Just cur' -> pure $ Just $ Editing before cur' after
       Nothing -> case (mods, key) of
-        (NoMods, KEsc) -> pure $ Just $ Navigating before cur after
-        (NoMods, KLeft) -> pure $ Just $ Navigating before cur after
+        (NoMods, KEsc) -> do
+          cur' <- handleUnfocus cur
+          pure $ Just $ Navigating before cur' after
+        (NoMods, KLeft) -> do
+          cur' <- handleUnfocus cur
+          pure $ Just $ Navigating before cur' after
         _ -> pure Nothing
   handleKey NoMods key original@(Navigating before cur after) = case key of
     KUp -> case before of

@@ -1,7 +1,9 @@
 module Stred.ReadShowEditor where
 
+import Control.Applicative ((<|>))
 import Data.Text qualified as Text
 import Graphics.Vty (Key (..))
+import Stred.Image
 import Stred.LineEditor
 import Stred.Widget
 import Text.Read (readMaybe)
@@ -23,16 +25,16 @@ instance (Read a, Show a) => HandleEvent (ReadShowEditor a) where
       Nothing -> case (mods, key) of
         (NoMods, KEnter) -> case contentsFromEditor s of
           Nothing -> pure $ Just s
-          Just valid -> pure $ Just s{lastValid = Just valid, editor = editorFromContents $ Text.pack $ show valid}
-        (NoMods, KEsc) -> case lastValid s of
-          Nothing -> pure $ Just s
-          Just valid -> pure $ Just s{editor = editorFromContents $ Text.pack $ show valid}
+          Just valid -> pure $ Just $ editorFromContents valid
         _ -> pure Nothing
 
-instance Render (ReadShowEditor a) where
-  render active ReadShowEditor{editor} =
-    render active editor
+  handleUnfocus s = pure $ maybe s editorFromContents $ contentsFromEditor s <|> lastValid s
 
+instance (Read a) => Render (ReadShowEditor a) where
+  render active ReadShowEditor{editor} =
+    case readMaybe . Text.unpack =<< contentsFromEditor editor of
+      Nothing -> bg 88 $ render active editor
+      (_ :: Maybe a) -> render active editor
   renderCollapsed ReadShowEditor{editor} = renderCollapsed editor
 
 instance (Read a, Show a) => Editor (ReadShowEditor a) where

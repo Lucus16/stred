@@ -20,6 +20,10 @@ instance (HandleEvent ed) => HandleEvent (SelectByKey ed) where
     pure $ Selected . snd <$> Map.lookup key eds
   handleKey _ _ _ = pure Nothing
 
+  handleUnfocus s = case s of
+    SelectByKey _ -> pure s
+    Selected ed -> Selected <$> handleUnfocus ed
+
 instance (Render ed) => Render (SelectByKey ed) where
   render active (Selected s) = render active s
   render active (SelectByKey s) =

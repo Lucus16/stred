@@ -43,6 +43,13 @@ instance HandleEvent JsonEditor1 where
     StringEditor e -> fmap StringEditor <$> handleKey mods key e
     ArrayEditor e -> fmap ArrayEditor <$> handleKey mods key e
 
+  handleUnfocus = \case
+    JsonEditorNull -> pure JsonEditorNull
+    BoolEditor e -> BoolEditor <$> handleUnfocus e
+    NumberEditor e -> NumberEditor <$> handleUnfocus e
+    StringEditor e -> StringEditor <$> handleUnfocus e
+    ArrayEditor e -> ArrayEditor <$> handleUnfocus e
+
 instance HandleEvent JsonEditor where
   handleKey mods key (JsonEditor s) = do
     handleKey mods key s >>= \case
@@ -51,6 +58,8 @@ instance HandleEvent JsonEditor where
         (NoMods, KChar 'r') -> pure $ Just jsonEditor
         (Ctrl, KChar 'r') -> pure $ Just jsonEditor
         _ -> pure Nothing
+
+  handleUnfocus (JsonEditor e) = JsonEditor <$> handleUnfocus e
 
 quoteBar :: Sized Image
 quoteBar = "┃ "
