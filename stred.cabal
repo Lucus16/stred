@@ -22,6 +22,7 @@ library
     , vty
 
   exposed-modules:
+    Data.Tape
     Stred
     Stred.EnumEditor
     Stred.Image
