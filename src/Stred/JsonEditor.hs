@@ -1,6 +1,7 @@
 module Stred.JsonEditor where
 
 import Data.Aeson (Value (..))
+import Data.Aeson.KeyMap qualified as KeyMap
 import Data.Map qualified as Map
 import Data.Scientific (Scientific)
 import Data.Vector qualified as Vector
@@ -11,6 +12,7 @@ import Stred.LineEditor
 import Stred.ListEditor
 import Stred.Prelude
 import Stred.ReadShowEditor
+import Stred.RecordEditor
 import Stred.SelectByKey
 import Stred.Widget
 
@@ -22,11 +24,13 @@ jsonEditor =
   JsonEditor $
     SelectByKey $
       Map.fromList
-        [ ('n', ("null", JsonEditorNull))
-        , ('b', ("bool", BoolEditor newEditor))
-        , ('f', ("number", NumberEditor newEditor))
+        [ ('z', ("null", JsonEditorNull))
+        , ('f', ("false", BoolEditor (editorFromContents False)))
+        , ('t', ("true", BoolEditor (editorFromContents True)))
+        , ('n', ("number", NumberEditor (editorFromContents 0)))
         , ('s', ("string", StringEditor newEditor))
         , ('a', ("array", ArrayEditor newEditor))
+        , ('o', ("object", RecordEditor newEditor))
         ]
 
 data JsonEditor1
@@ -35,6 +39,7 @@ data JsonEditor1
   | NumberEditor (ReadShowEditor Scientific)
   | StringEditor LineEditor
   | ArrayEditor (ListEditor JsonEditor)
+  | RecordEditor (RecordEditor JsonEditor)
 
 instance HandleEvent JsonEditor1 where
   handleKey mods key = \case
@@ -43,6 +48,7 @@ instance HandleEvent JsonEditor1 where
     NumberEditor e -> fmap NumberEditor <$> handleKey mods key e
     StringEditor e -> fmap StringEditor <$> handleKey mods key e
     ArrayEditor e -> fmap ArrayEditor <$> handleKey mods key e
+    RecordEditor e -> fmap RecordEditor <$> handleKey mods key e
 
   handleUnfocus = \case
     JsonEditorNull -> pure JsonEditorNull
@@ -50,6 +56,7 @@ instance HandleEvent JsonEditor1 where
     NumberEditor e -> NumberEditor <$> handleUnfocus e
     StringEditor e -> StringEditor <$> handleUnfocus e
     ArrayEditor e -> ArrayEditor <$> handleUnfocus e
+    RecordEditor e -> RecordEditor <$> handleUnfocus e
 
 instance HandleEvent JsonEditor where
   handleKey mods key (JsonEditor s) = do
@@ -71,12 +78,14 @@ instance Render JsonEditor1 where
   render active (NumberEditor ed) = render active ed
   render active (StringEditor ed) = hcat [quoteBar, render active ed]
   render active (ArrayEditor ed) = render active ed
+  render active (RecordEditor ed) = render active ed
 
   renderCollapsed JsonEditorNull = "null"
   renderCollapsed (BoolEditor ed) = renderCollapsed ed
   renderCollapsed (NumberEditor ed) = renderCollapsed ed
   renderCollapsed (StringEditor ed) = hcat [quoteBar, renderCollapsed ed]
   renderCollapsed (ArrayEditor ed) = renderCollapsed ed
+  renderCollapsed (RecordEditor ed) = renderCollapsed ed
 
 instance Editor JsonEditor where
   type Contents JsonEditor = Value
@@ -88,7 +97,7 @@ instance Editor JsonEditor where
       String s -> StringEditor (editorFromContents s)
       Array a -> ArrayEditor (editorFromContents (Vector.toList a))
       Number n -> NumberEditor (editorFromContents n)
-      Object o -> undefined
+      Object o -> RecordEditor (editorFromContents (KeyMap.toMapText o))
   contentsFromEditor (JsonEditor (SelectByKey _)) = Nothing
   contentsFromEditor (JsonEditor (Selected s)) = case s of
     JsonEditorNull -> Just Null
@@ -96,3 +105,4 @@ instance Editor JsonEditor where
     NumberEditor e -> Number <$> contentsFromEditor e
     StringEditor e -> String <$> contentsFromEditor e
     ArrayEditor e -> Array . Vector.fromList <$> contentsFromEditor e
+    RecordEditor e -> Object . KeyMap.fromMapText <$> contentsFromEditor e

@@ -30,6 +30,7 @@ library
     Stred.LineEditor
     Stred.ListEditor
     Stred.ReadShowEditor
+    Stred.RecordEditor
     Stred.SelectByKey
     Stred.TabbedEditor
     Stred.Widget

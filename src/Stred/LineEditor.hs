@@ -13,7 +13,9 @@ data LineEditor = LineEditor
 
 instance HandleEvent LineEditor where
   handleKey NoMods key original@LineEditor{contents, cursorPos} = pure case key of
-    KChar c -> pure original{contents = Text.take cursorPos contents <> Text.singleton c <> Text.drop cursorPos contents, cursorPos = cursorPos + 1}
+    KChar c
+      | c < ' ' -> Nothing
+      | otherwise -> pure original{contents = Text.take cursorPos contents <> Text.singleton c <> Text.drop cursorPos contents, cursorPos = cursorPos + 1}
     KPause
       | cursorPos == Text.length contents -> pure original
       | otherwise -> pure original{contents = Text.take cursorPos contents <> Text.drop (cursorPos + 1) contents}
