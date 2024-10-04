@@ -33,6 +33,7 @@ library
     Stred.SelectByKey
     Stred.TabbedEditor
     Stred.Widget
+    Stred.Prelude
 
   default-extensions:
     BlockArguments
