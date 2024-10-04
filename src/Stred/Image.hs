@@ -13,17 +13,12 @@ module Stred.Image
   , underline
   ) where
 
-import Control.Applicative ((<|>))
-import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString
 import Data.ByteString.Char8 qualified
-import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
-import Data.String (IsString (..))
-import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding (encodeUtf8)
-import Data.Word (Word8)
 import Graphics.Vty qualified as Vty
+import Stred.Prelude
 
 type Color = Word8
 

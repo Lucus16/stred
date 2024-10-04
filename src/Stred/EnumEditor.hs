@@ -4,6 +4,7 @@ import Data.List.NonEmpty qualified as NonEmpty
 import Data.Text qualified as Text
 import Graphics.Vty (Key (..))
 import Stred.Image
+import Stred.Prelude
 import Stred.Widget
 
 data EnumEditor a = EnumEditor

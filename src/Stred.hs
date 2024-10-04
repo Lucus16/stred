@@ -1,12 +1,10 @@
 module Stred where
 
-import Control.Monad.IO.Class (liftIO)
-import Data.Foldable (traverse_)
-import Data.Maybe (fromMaybe)
 import Graphics.Vty (Key (..), Vty)
 import Graphics.Vty qualified as Vty
 import Stred.Image
 import Stred.JsonEditor
+import Stred.Prelude
 import Stred.Widget
 
 newtype App a = App {top :: a}

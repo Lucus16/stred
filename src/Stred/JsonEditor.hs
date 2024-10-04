@@ -9,6 +9,7 @@ import Stred.EnumEditor
 import Stred.Image
 import Stred.LineEditor
 import Stred.ListEditor
+import Stred.Prelude
 import Stred.ReadShowEditor
 import Stred.SelectByKey
 import Stred.Widget

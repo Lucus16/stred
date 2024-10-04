@@ -3,67 +3,58 @@ module Stred.TabbedEditor
   , TabbedEditor (..)
   ) where
 
-import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
-import Data.Text (Text)
+import Data.Tape qualified as Tape
 import Graphics.Vty (Key (..))
 import Stred.Image
+import Stred.Prelude
 import Stred.Widget
 
 data Tab a = Tab
   { name :: Text
-  , contents :: SomeEditor a
+  , body :: SomeEditor a
   }
 
 data TabbedEditor a
-  = Navigating [Tab a] (Tab a) [Tab a]
-  | Editing [Tab a] (Tab a) [Tab a]
+  = Navigating (Tape (Tab a))
+  | Editing (Tape (Tab a))
 
 instance (Bounded a, Enum a, Eq a) => HandleEvent (TabbedEditor a) where
-  handleKey mods key (Editing before cur after) =
-    handleKey mods key (contents cur) >>= \case
-      Just cur' -> pure $ Just $ Editing before cur{contents = cur'} after
+  handleKey mods key (Editing xs) =
+    handleKey mods key (body (Tape.peek xs)) >>= \case
+      Just cur' -> pure $ Just $ Editing $ Tape.mapCurrent (\tab -> tab{body = cur'}) xs
       Nothing -> case (mods, key) of
-        (NoMods, KEsc) -> pure $ Just $ Navigating before cur after
+        (NoMods, KEsc) -> pure $ Just $ Navigating xs
         _ -> pure Nothing
-  handleKey NoMods key original@(Navigating before cur after) = case key of
-    KLeft -> case before of
-      [] -> pure $ Just original
-      x : before' -> pure $ Just $ Navigating before' x (cur : after)
-    KRight -> case after of
-      [] -> pure $ Just original
-      x : after' -> pure $ Just $ Navigating (cur : before) x after'
+  handleKey NoMods key (Navigating xs) = case key of
+    KLeft -> pure $ Just $ Navigating $ try Tape.previous xs
+    KRight -> pure $ Just $ Navigating $ try Tape.next xs
     _ -> pure Nothing
   handleKey _ _ _ = pure Nothing
 
 instance Render (TabbedEditor a) where
-  render active (Navigating before cur after) =
+  render active (Navigating xs) =
     vcat
       [ hcat (NonEmpty.intersperse " " tabs)
-      , render False (contents cur)
+      , render False (body (Tape.peek xs))
       ]
     where
-      tabs =
-        NonEmpty.prependList (map (raw . name) (reverse before)) $
-          tabStyle (raw (name cur)) :| map (raw . name) after
+      tabs = Tape.toNonEmptyWith (raw . name) (tabStyle . raw . name) xs
       tabStyle
         | active = bg 15 . fg 0
         | otherwise = bold
-  render active (Editing before cur after) =
+  render active (Editing xs) =
     vcat
       [ hcat (NonEmpty.intersperse " " tabs)
-      , render active (contents cur)
+      , render active (body (Tape.peek xs))
       ]
     where
-      tabs =
-        NonEmpty.prependList (map (raw . name) (reverse before)) $
-          selectedTabStyle (raw (name cur))
-            :| map (raw . name) after
+      tabs = Tape.toNonEmptyWith (raw . name) (selectedTabStyle . raw . name) xs
 
-  renderCollapsed (Navigating _ cur _) =
-    raw (name cur <> " ...")
-  renderCollapsed (Editing _ cur _) =
-    raw (name cur <> " ...")
+  renderCollapsed (Navigating xs) =
+    raw (name (Tape.peek xs) <> " ...")
+  renderCollapsed (Editing xs) =
+    raw (name (Tape.peek xs) <> " ...")
 
 selectedTabStyle :: Sized Image -> Sized Image
 selectedTabStyle = bg 7 . fg 0

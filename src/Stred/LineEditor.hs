@@ -1,9 +1,9 @@
 module Stred.LineEditor where
 
-import Data.Text (Text)
 import Data.Text qualified as Text
 import Graphics.Vty (Key (..))
 import Stred.Image
+import Stred.Prelude
 import Stred.Widget
 
 data LineEditor = LineEditor

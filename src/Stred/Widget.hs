@@ -1,8 +1,8 @@
 module Stred.Widget where
 
-import Data.Fix (Fix (..))
 import Graphics.Vty.Input.Events (Key, Modifier (..))
 import Stred.Image
+import Stred.Prelude
 
 data Mods = Mods {ctrl :: Bool, alt :: Bool, shift :: Bool}
 

@@ -41,10 +41,12 @@ library
     GADTs
     ImportQualifiedPost
     LambdaCase
+    NoImplicitPrelude
     OverloadedLists
     OverloadedStrings
     PatternSynonyms
     TypeFamilies
+    ViewPatterns
 
   ghc-options:
     -Wall

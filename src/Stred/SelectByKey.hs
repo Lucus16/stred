@@ -1,13 +1,11 @@
 module Stred.SelectByKey where
 
-import Data.List.NonEmpty (nonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
-import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Text (Text)
 import Data.Text qualified as Text
 import Graphics.Vty qualified as Vty
 import Stred.Image
+import Stred.Prelude
 import Stred.Widget
 
 data SelectByKey ed
